@@ -1,55 +1,51 @@
-Brightway2-UI
-=============
+# brightway2-ui
 
-This fork is now the official repo for  Brightway2-UI:
+[![PyPI](https://img.shields.io/pypi/v/brightway2-ui.svg)][pypi status]
+[![Status](https://img.shields.io/pypi/status/brightway2-ui.svg)][pypi status]
+[![Python Version](https://img.shields.io/pypi/pyversions/brightway2-ui)][pypi status]
+[![License](https://img.shields.io/pypi/l/brightway2-ui)][license]
 
-> a web and command line user interface, part of the **Brightway2 LCA framework** <https://brightwaylca.org>. 
+[![Read the documentation at https://brightway2-ui.readthedocs.io/](https://img.shields.io/readthedocs/brightway2-ui/latest.svg?label=Read%20the%20Docs)][read the docs]
+[![Tests](https://github.com/brightway-lca/brightway2-ui/workflows/Tests/badge.svg)][tests]
+[![Codecov](https://codecov.io/gh/brightway-lca/brightway2-ui/branch/main/graph/badge.svg)][codecov]
 
-The source code is hosted on Bitbucket: <https://bitbucket.org/tomas_navarrete/brightway2-ui>.
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 
-Compatibility with Brightway2X
-==============================
+[pypi status]: https://pypi.org/project/brightway2-ui/
+[read the docs]: https://brightway2-ui.readthedocs.io/
+[tests]: https://github.com/brightway-lca/brightway2-ui/actions?workflow=Tests
+[codecov]: https://app.codecov.io/gh/brightway-lca/brightway2-ui
+[pre-commit]: https://github.com/pre-commit/pre-commit
+[black]: https://github.com/psf/black
 
-This repository is used to produce 2 packages: one compatible with brightway25 (`bw25ui`), and one compatible with brightway2 (`bw2ui`).
+## Installation
 
-Installation
-============
+You can install _bw2ui_ via [pip] from [PyPI]:
 
-Brightway25
------------
-
-To install a package compatible with brightway25:
-
-```bash
-conda instal -c tomas_navarrete bw25ui
+```console
+$ pip install bw2ui
 ```
 
-Brightway2
-----------
+## Contributing
 
-To install a package compatible with brightway2:
+Contributions are very welcome.
+To learn more, see the [Contributor Guide].
 
-```bash
-conda instal -c tomas_navarrete bw2ui
-```
+## License
 
-Roadmap
-=======
+Distributed under the terms of the [MIT license][license],
+_bw2ui_ is free and open source software.
 
-+ As long as retro-compatibility is possible between Brightway25 and Brightway2 is possible, the code base will remain identical.
-+ Packages will be published with the same version tags, but different names.
-+ New features will be primarily implemented to work with Brightway25, and if they are compatible with Brightway2 they will be part of the same code base.
-+ When the implementation of new features in a single code base for Brightway2 and Brightway25 becomes imposible, a new branch called `legacy` will be created to track the code compatible with Brightway2. The same will be done in the long term once Brightway3 is released.
+## Issues
 
-short term
------------
-
-The current code base is identical for both packages (`bw25ui` and `bw2ui`).
-The current main branch will be kept as the branch for development, with identical code bases for both packages _until_ brightway25 public API breaks the compatibility.
-
-mid term
---------
-
-Once Brightway3 starts to exist, the main branch will be dedicated to it, with a `bw3ui` package.
+If you encounter any problems,
+please [file an issue][issue tracker] along with a detailed description.
 
 
+<!-- github-only -->
+
+[command-line reference]: https://brightway2-ui.readthedocs.io/en/latest/usage.html
+[license]: https://github.com/brightway-lca/brightway2-ui/blob/main/LICENSE
+[contributor guide]: https://github.com/brightway-lca/brightway2-ui/blob/main/CONTRIBUTING.md
+[issue tracker]: https://github.com/brightway-lca/brightway2-ui/issues

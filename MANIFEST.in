@@ -1,3 +1,4 @@
+include bw2ui/VERSION
 include *.txt
 include README.md
 recursive-include bw2ui *.py

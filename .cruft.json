@@ -1,0 +1,25 @@
+{
+  "template": "https://github.com/brightway-lca/cookiecutter-brightwaylib",
+  "commit": "e23913e79ddf97e06d3055e87e158267dbb734c5",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "Chris Mutel",
+      "email": "cmutel@gmail.com",
+      "github_username": "brightway-lca",
+      "project_name": "brightway2-ui",
+      "package_name": "bw2ui",
+      "project_short_description": "a web and command line user interface, part of the Brightway2 LCA framework.",
+      "version": "0.29.1",
+      "use_pytest": "y",
+      "command_line_interface": "No command-line interface",
+      "open_source_license": "MIT",
+      "copyright_year": "2023",
+      "_copy_without_render": [
+        ".github/*"
+      ],
+      "_template": "https://github.com/brightway-lca/cookiecutter-brightwaylib"
+    }
+  },
+  "directory": null
+}
