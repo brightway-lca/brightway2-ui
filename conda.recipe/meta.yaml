@@ -1,15 +1,18 @@
+---
+{% set version_contents = load_file_regex(load_file="bw2ui/VERSION", regex_pattern="^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$") %}
+
 package:
         name: bw25ui
-        version: {{ GIT_DESCRIBE_TAG }}
+        version: {{ version_contents.group(0) }}
 
 source:
         git_url: ../
 
 requirements:
         build:
-                - python
-                - setuptools
-                - setuptools_scm
+                - python ==3.10
+                - build
+                - setuptools >=61.0
         run:
                 - python >=3.6
                 - brightway25
@@ -21,11 +24,12 @@ requirements:
                 - stats_arrays
                 - tabulate
                 - genson
+                - numpy <1.24
 
 about:
-        home: https://bitbucket.org/tomas_navarrete/brightway2-ui
+        home: https://github.com/brightway-lca/brightway2-ui/
         license: BSD
-        license_file: LICENSE.txt
+        license_file: LICENSE
 
 build:
         entry_points:
@@ -33,3 +37,6 @@ build:
                 - bw2-web     = bw2ui.bin.bw2_web:main
 
         noarch: python
+        script:
+          - python -m build -n --outdir dist/ .
+          - python -m pip install dist/*whl
