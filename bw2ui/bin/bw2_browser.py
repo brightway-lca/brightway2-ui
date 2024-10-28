@@ -1289,7 +1289,6 @@ Autosave is turned %(autosave)s.""" % {
                     )
                 )
 
-            # if is_legacy_bd():
             results = search_bw2(
                 search_criterion,
                 criterion_value,
@@ -1297,8 +1296,6 @@ Autosave is turned %(autosave)s.""" % {
                 needle,
                 self.search_limit,
             )
-            # else:
-            # results = search_bw25(m, search_criterion, criterion_value, db, needle, self)
             results_keys = [r.key for r in results]
 
             self.set_current_options(
