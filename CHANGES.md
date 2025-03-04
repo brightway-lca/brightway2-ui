@@ -1,8 +1,9 @@
 # ui Changelog
 
-## [Unreleased]
+## [0.44.0]
 
 + Fix issue 52: supplying faulty ids to a command, gracefuly fails now
++ Feature: show production exchanges of selected activity
 
 ## [0.43.0]
 
