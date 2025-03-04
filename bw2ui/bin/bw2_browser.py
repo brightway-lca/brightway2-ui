@@ -138,6 +138,7 @@ activity).
     un: display uncertainty information of upstream activitities if avail.
     d: List downstream activities (activities which consume current activity).
     b: List biosphere flows for the current activity.
+    pe: List production exchanges for current activity.
     cfs: Show characterization factors for current activity and current method.
     G: if a method and activity are selected, do an lcia of the activity.
     ta: if an lcia of the activity has been done, list top activities.
@@ -1724,6 +1725,14 @@ Autosave is turned %(autosave)s.""" % {
         else:
             print("Please select an activity first.")
 
+    def do_pe(self, arg):
+        """show production exchanges if they exist"""
+        if not self.activity:
+            print("Need to choose an activity first")
+        else:
+            es = get_activity(self.activity).exchanges()
+            self.format_exchanges_as_options(es, "production")
+            self.print_current_options("production exchanges")
 
 def bw2_compat_annotated_top_emissions(lca, names=True, **kwargs):
     """Get list of most damaging biosphere flows in an LCA, sorted by ``abs(direct impact)``. # noqa: E501
