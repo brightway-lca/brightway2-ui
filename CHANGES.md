@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [Unreleased]
+
++ Fix issue 52: supplying faulty ids to a command, gracefuly fails now
+
 ## [0.43.0]
 
 + Fix search incompatibility with FTS5
