@@ -46,7 +46,7 @@ from bw2data import (
     methods,
     projects,
 )
-from bw2data.data_store import UnknownObject
+from bw2data.errors import UnknownObject
 from packaging import version
 
 if (
@@ -62,7 +62,6 @@ from bw2data.parameters import (
     Group,
     ProjectParameter,
 )
-from bw2data.query import Filter, Query
 from docopt import docopt
 from tabulate import tabulate
 
@@ -856,16 +855,17 @@ Autosave is turned %(autosave)s.""" % {
         if not self.database:
             print("Please choose a database first")
         # Support the use of int ids (used in bw25)
+        activity_ref = None
         try:
-            a_numerical_id = int(arg)
-            activity = get_activity(a_numerical_id)
-            self.choose_activity(activity.key)
+            activity_ref = int(arg)
         except ValueError:
-            try:
-                _ = get_activity(key)
-                self.choose_activity(key)
-            except ValueError:
-                print(f"Invalid activity id {key[1]}")
+            activity_ref = key
+        try:
+            activity = get_activity(activity_ref)
+            self.choose_activity(activity.key)
+        except UnknownObject:
+            print(f"Invalid activity id {key[1]}")
+
 
     def do_autosave(self, arg):
         """Toggle autosave behaviour.
