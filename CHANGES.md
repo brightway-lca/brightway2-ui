@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [0.45.0]
+
++ Fix: when flows don't have categories, default to printing empty string in the cfs command.
+
 ## [0.44.0]
 
 + Fix issue 52: supplying faulty ids to a command, gracefuly fails now

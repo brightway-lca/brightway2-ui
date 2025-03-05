@@ -391,7 +391,7 @@ Autosave is turned %(autosave)s.""" % {
                 else:
                     flow_key = tuple((cf[0][0], cf[0][1]))
                     flow = get_activity(flow_key)
-                flow_cat_tup = flow["categories"]
+                flow_cat_tup = flow.get("categories", ("",))
                 flow_cat = flow_cat_tup[0]
                 flow_subcat = None
                 if len(flow_cat_tup) == 2:
