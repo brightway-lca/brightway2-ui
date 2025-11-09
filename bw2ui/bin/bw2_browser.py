@@ -194,6 +194,7 @@ class ActivityBrowser(cmd.Cmd):
         self.load_database(database)
         self.load_activity(activity)
         self.load_method(method)
+        self.temp_activities = []
         self.update_prompt()
 
     ######################
@@ -1697,6 +1698,33 @@ Autosave is turned %(autosave)s.""" % {
         else:
             print("Please select a project first")
 
+    def do_add(self, arg):
+        """Add the currently selected activity to the temporary activities list."""
+        if not self.activity:
+            print("No activity currently selected")
+        else:
+            if self.activity not in self.temp_activities:
+                self.temp_activities.append(self.activity)
+                print("Added activity to temporary list: %s" % self.format_activity(self.activity))
+                print("Temporary list now contains %d activities" % len(self.temp_activities))
+            else:
+                print("Activity already in temporary list: %s" % self.format_activity(self.activity))
+
+    def do_clear(self, arg):
+        """Clear the temporary activities list."""
+        count = len(self.temp_activities)
+        self.temp_activities = []
+        print("Cleared temporary activities list (%d activities removed)" % count)
+
+    def do_lt(self, arg):
+        """List all activities in the temporary activities list."""
+        if not self.temp_activities:
+            print("Temporary activities list is empty")
+        else:
+            print("Temporary activities list (%d activities):" % len(self.temp_activities))
+            for index, activity_key in enumerate(self.temp_activities):
+                print("[%d]: %s" % (index, self.format_activity(activity_key)))
+
     def do_ca(self, arg):
         """Print the recursive calculation of an LCA, accepting cutoff as arg."""
         if all([self.method, self.category, self.subcategory]) and self.activity:
@@ -1746,6 +1774,7 @@ Autosave is turned %(autosave)s.""" % {
                 for prop,value in e.as_dict().items():
                     print(f"\t {prop}: {value}")
             print("")
+
 
 def bw2_compat_annotated_top_emissions(lca, names=True, **kwargs):
     """Get list of most damaging biosphere flows in an LCA, sorted by ``abs(direct impact)``. # noqa: E501
