@@ -1479,6 +1479,183 @@ Autosave is turned %(autosave)s.""" % {
         else:
             print("Select at least a method first")
 
+    def do_GC(self, arg):
+        """Do an LCIA of all activities in the temporary list with a fully specified method."""
+        # Check if we have a full method specification
+        method_namespace = getattr(self, 'method_namespace', None)
+        if has_namespaced_methods():
+            if not all([method_namespace, self.method, self.category, self.subcategory]):
+                print("Please select a full method specification: namespace, method, category, and subcategory")
+                return
+            method_id = (
+                method_namespace,
+                self.method,
+                self.category,
+                self.subcategory,
+            )
+            method_key_list = [method_id]
+        else:
+            if not all([self.method, self.category, self.subcategory]):
+                print("Please select a full method specification: method, category, and subcategory")
+                return
+            method_id = (self.method, self.category, self.subcategory)
+            method_key_list = [method_id]
+
+        # Check if we have activities in the temporary list
+        if not self.temp_activities:
+            print("Temporary activities list is empty. Use 'add' to add activities first.")
+            return
+
+        # Build functional units from all activities in the temporary list
+        activities = [get_activity(key) for key in self.temp_activities]
+        func_units = {str(a.id): {a.id: 1.0} for a in activities}
+
+        if has_namespaced_methods():
+            namespace_shift = 1
+        else:
+            namespace_shift = 0
+
+        if (
+            bc.__version__
+            and isinstance(bc.__version__, str)
+            and version.parse(bc.__version__) >= version.parse("2.0.DEV10")
+        ):
+            # the configuration
+            config = {"impact_categories": method_key_list}
+            data_objs = get_multilca_data_objs(
+                functional_units=func_units, method_config=config
+            )
+            mlca = bc.MultiLCA(
+                demands=func_units, method_config=config, data_objs=data_objs
+            )
+            mlca.lci()
+            mlca.lcia()
+            
+            # Organize scores by activity
+            # mlca.scores is a dict with keys (method, functional_unit_name)
+            
+            # Get all unique methods
+            methods_seen = set()
+            for (method, func_unit_name), score in mlca.scores.items():
+                if method not in methods_seen:
+                    methods_seen.add(method)
+            
+            # Build results per activity
+            headers = ["method", "category", "subcategory", "unit", "score"]
+            if has_namespaced_methods():
+                headers.insert(0, "namespace")
+            
+            print("LCA results for %d activities in temporary list:" % len(self.temp_activities))
+            for activity in activities:
+                print("\nActivity: %s" % activity)
+                activity_results = []
+                for method in methods_seen:
+                    score = mlca.scores.get((method, str(activity.id)), 0)
+                    method_name = method[0 + namespace_shift]
+                    category_name = method[1 + namespace_shift]
+                    indicator_name = method[2 + namespace_shift]
+                    result_row = [
+                        method_name,
+                        category_name,
+                        indicator_name,
+                        Method(method).metadata["unit"],
+                        score,
+                    ]
+                    if has_namespaced_methods():
+                        result_row.insert(0, method[0])
+                    activity_results.append(result_row)
+                print(tabulate(activity_results, headers=headers))
+            
+            # Calculate and show aggregated results (sum across all activities)
+            print("\nAggregated results (sum of all activities):")
+            aggregated_results = []
+            for method in methods_seen:
+                total_score = sum(
+                    mlca.scores.get((method, str(activity.id)), 0)
+                    for activity in activities
+                )
+                method_name = method[0 + namespace_shift]
+                category_name = method[1 + namespace_shift]
+                indicator_name = method[2 + namespace_shift]
+                result_row = [
+                    method_name,
+                    category_name,
+                    indicator_name,
+                    Method(method).metadata["unit"],
+                    total_score,
+                ]
+                if has_namespaced_methods():
+                    result_row.insert(0, method[0])
+                aggregated_results.append(result_row)
+            
+            self.tabulate_data = tabulate(
+                aggregated_results,
+                headers=headers,
+                tablefmt="tsv",
+            )
+            print(tabulate(aggregated_results, headers=headers))
+
+        else:
+            # Legacy API
+            # Build a list of functional units, one for each activity
+            bw2browser_cs = {
+                "inv": [{get_activity(key): 1} for key in self.temp_activities],
+                "ia": method_key_list,
+            }
+            tmp_cs_id = uuid.uuid1()
+            calculation_setups[str(tmp_cs_id)] = bw2browser_cs
+            mlca = bc.MultiLCA(str(tmp_cs_id))
+            
+            headers = ["method", "category", "subcategory", "unit", "score"]
+            if has_namespaced_methods():
+                headers.insert(0, "namespace")
+            
+            # Results are organized as: mlca.results has shape (num_methods, num_activities)
+            print("LCA results for %d activities in temporary list:" % len(self.temp_activities))
+            for idx, activity_key in enumerate(self.temp_activities):
+                activity = get_activity(activity_key)
+                activity_name = activity.get("name", "Unknown")
+                print("\nActivity %d: %s" % (idx + 1, activity_name))
+                activity_results = []
+                for i in range(len(mlca.methods)):
+                    method = mlca.methods[i]
+                    score = mlca.results[i, idx] if mlca.results.shape[1] > idx else 0
+                    result_row = [
+                        method[0],
+                        method[1],
+                        method[2],
+                        Method(method).metadata["unit"],
+                        score,
+                    ]
+                    if has_namespaced_methods():
+                        result_row.insert(0, method[0])
+                    activity_results.append(result_row)
+                print(tabulate(activity_results, headers=headers))
+            
+            # Show aggregated results
+            print("\nAggregated results (sum of all activities):")
+            aggregated_results = []
+            for i in range(len(mlca.methods)):
+                method = mlca.methods[i]
+                total_score = mlca.results[i, :].sum() if mlca.results.shape[1] > 0 else 0
+                result_row = [
+                    method[0],
+                    method[1],
+                    method[2],
+                    Method(method).metadata["unit"],
+                    total_score,
+                ]
+                if has_namespaced_methods():
+                    result_row.insert(0, method[0])
+                aggregated_results.append(result_row)
+            
+            self.tabulate_data = tabulate(
+                aggregated_results,
+                headers=headers,
+                tablefmt="tsv",
+            )
+            print(tabulate(aggregated_results, headers=headers))
+
     def do_ta(self, arg):
         """Display top activities if an activity + method are selected."""
         if self.activity:
