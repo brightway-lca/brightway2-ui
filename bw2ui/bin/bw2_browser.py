@@ -1545,6 +1545,9 @@ Autosave is turned %(autosave)s.""" % {
             if has_namespaced_methods():
                 headers.insert(0, "namespace")
             
+            # Collect all results for export
+            all_results_for_export = []
+            
             print("LCA results for %d activities in temporary list:" % len(self.temp_activities))
             for activity in activities:
                 print("\nActivity: %s" % activity)
@@ -1564,6 +1567,9 @@ Autosave is turned %(autosave)s.""" % {
                     if has_namespaced_methods():
                         result_row.insert(0, method[0])
                     activity_results.append(result_row)
+                    # Add to export list with activity identifier
+                    export_row = result_row + [activity]
+                    all_results_for_export.append(export_row)
                 print(tabulate(activity_results, headers=headers))
             
             # Calculate and show aggregated results (sum across all activities)
@@ -1587,10 +1593,17 @@ Autosave is turned %(autosave)s.""" % {
                 if has_namespaced_methods():
                     result_row.insert(0, method[0])
                 aggregated_results.append(result_row)
+                # Add to export list with aggregated identifier
+                export_row = result_row + ["AGGREGATED"]
+                all_results_for_export.append(export_row)
             
+            
+            
+            # Create combined table with activity column for export
+            export_headers = headers + ["activity"]
             self.tabulate_data = tabulate(
-                aggregated_results,
-                headers=headers,
+                all_results_for_export,
+                headers=export_headers,
                 tablefmt="tsv",
             )
             print(tabulate(aggregated_results, headers=headers))
@@ -1611,6 +1624,9 @@ Autosave is turned %(autosave)s.""" % {
                 headers.insert(0, "namespace")
             
             # Results are organized as: mlca.results has shape (num_methods, num_activities)
+            # Collect all results for export
+            all_results_for_export = []
+            
             print("LCA results for %d activities in temporary list:" % len(self.temp_activities))
             for idx, activity_key in enumerate(self.temp_activities):
                 activity = get_activity(activity_key)
@@ -1630,6 +1646,9 @@ Autosave is turned %(autosave)s.""" % {
                     if has_namespaced_methods():
                         result_row.insert(0, method[0])
                     activity_results.append(result_row)
+                    # Add to export list with activity identifier
+                    export_row = result_row + [activity_name]
+                    all_results_for_export.append(export_row)
                 print(tabulate(activity_results, headers=headers))
             
             # Show aggregated results
@@ -1648,10 +1667,15 @@ Autosave is turned %(autosave)s.""" % {
                 if has_namespaced_methods():
                     result_row.insert(0, method[0])
                 aggregated_results.append(result_row)
-            
+                # Add to export list with aggregated identifier
+                export_row = result_row + ["AGGREGATED"]
+                all_results_for_export.append(export_row)
+
+            # Create combined table with activity column for export
+            export_headers = headers + ["activity"]
             self.tabulate_data = tabulate(
-                aggregated_results,
-                headers=headers,
+                all_results_for_export,
+                headers=export_headers,
                 tablefmt="tsv",
             )
             print(tabulate(aggregated_results, headers=headers))
