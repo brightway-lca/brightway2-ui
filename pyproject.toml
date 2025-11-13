@@ -71,7 +71,7 @@ dev = [
     "setuptools",
 ]
 docs = [
-    "furo==2024.8.6",
+    "furo==2025.9.25",
     "myst_parser==4.0.1",
     "sphinx==8.2.3",
 ]
