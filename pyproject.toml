@@ -12,6 +12,7 @@ maintainers = [
 ]
 description = "A web and command line user interface, part of the Brightway2 LCA framework https://brightway.dev."
 readme = "README.md"
+license-files = ["LICENSE"]
 dynamic = ["version"]
 # Add here all kinds of additional classifiers as defined under
 # https://pypi.org/classifiers/
@@ -82,7 +83,6 @@ docs = [
 bw2-web = "bw2ui.bin.bw2_web:main"
 bw2-browser = "bw2ui.bin.bw2_browser:main"
 
-license-files = "LICENSE"
 
 [tool.setuptools]
 include-package-data = true
