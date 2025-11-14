@@ -82,7 +82,7 @@ docs = [
 bw2-web = "bw2ui.bin.bw2_web:main"
 bw2-browser = "bw2ui.bin.bw2_browser:main"
 
-license-files = ["LICENSE"]
+license-files = "LICENSE"
 
 [tool.setuptools]
 include-package-data = true
