@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0"]
+requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -73,17 +73,18 @@ dev = [
     "setuptools",
 ]
 docs = [
-    "furo==2024.1.29",
-    "myst_parser==2.0.0",
-    "sphinx==7.2.6",
+    "furo==2025.9.25",
+    "myst_parser==4.0.1",
+    "sphinx==8.2.3",
 ]
 
 [project.scripts]
 bw2-web = "bw2ui.bin.bw2_web:main"
 bw2-browser = "bw2ui.bin.bw2_browser:main"
 
-[tool.setuptools]
 license-files = ["LICENSE"]
+
+[tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
