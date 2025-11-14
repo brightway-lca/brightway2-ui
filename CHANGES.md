@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [0.46.0]
+
++ New feature: compare LCIA results of multiple activities + ascii chart 🩵
+
 ## [0.45.0]
 
 + Fix: when flows don't have categories, default to printing empty string in the cfs command.

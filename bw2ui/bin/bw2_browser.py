@@ -165,6 +165,11 @@ data. add as first option -f to show all columns.
     sp : search a parameter (accepts wildcards)
 Misc:
     tsv: [filename] export latest table to tsv file (e.g.: results or cfs)
+    GC: Start group contribution mode for comparing multiple activities.
+    add: Add current activity to the list for group contribution/compare analysis.
+    list: List all activities added for group contribution/compare analysis.
+    clear: Clear (empty) the list of added activities for group contribution/compare.
+    GCH: Show the results table from the last group contribution/compare analysis.
     """
 
 
@@ -194,6 +199,8 @@ class ActivityBrowser(cmd.Cmd):
         self.load_database(database)
         self.load_activity(activity)
         self.load_method(method)
+        self.temp_activities = []
+        self.gc_results = None  # Store GC command results for GCH command
         self.update_prompt()
 
     ######################
@@ -1478,6 +1485,549 @@ Autosave is turned %(autosave)s.""" % {
         else:
             print("Select at least a method first")
 
+    def do_GC(self, arg):
+        """Do an LCIA of all activities in the temporary list with a fully specified method."""
+        # Check if we have a full method specification
+        method_namespace = getattr(self, 'method_namespace', None)
+        if has_namespaced_methods():
+            if not all([method_namespace, self.method, self.category, self.subcategory]):
+                print("Please select a full method specification: namespace, method, category, and subcategory")
+                return
+            method_id = (
+                method_namespace,
+                self.method,
+                self.category,
+                self.subcategory,
+            )
+            method_key_list = [method_id]
+        else:
+            if not all([self.method, self.category, self.subcategory]):
+                print("Please select a full method specification: method, category, and subcategory")
+                return
+            method_id = (self.method, self.category, self.subcategory)
+            method_key_list = [method_id]
+
+        # Check if we have activities in the temporary list
+        if not self.temp_activities:
+            print("Temporary activities list is empty. Use 'add' to add activities first.")
+            return
+
+        # Build functional units from all activities in the temporary list
+        activities = [get_activity(key) for key in self.temp_activities]
+        func_units = {str(a.id): {a.id: 1.0} for a in activities}
+
+        if has_namespaced_methods():
+            namespace_shift = 1
+        else:
+            namespace_shift = 0
+
+        if (
+            bc.__version__
+            and isinstance(bc.__version__, str)
+            and version.parse(bc.__version__) >= version.parse("2.0.DEV10")
+        ):
+            # the configuration
+            config = {"impact_categories": method_key_list}
+            data_objs = get_multilca_data_objs(
+                functional_units=func_units, method_config=config
+            )
+            mlca = bc.MultiLCA(
+                demands=func_units, method_config=config, data_objs=data_objs
+            )
+            mlca.lci()
+            mlca.lcia()
+            
+            # Organize scores by activity
+            # mlca.scores is a dict with keys (method, functional_unit_name)
+            
+            # Get all unique methods
+            methods_seen = set()
+            for (method, func_unit_name), score in mlca.scores.items():
+                if method not in methods_seen:
+                    methods_seen.add(method)
+            
+            # Build results per activity
+            headers = ["method", "category", "subcategory", "unit", "score"]
+            if has_namespaced_methods():
+                headers.insert(0, "namespace")
+            
+            # Collect all results for export
+            all_results_for_export = []
+            
+            print("LCA results for %d activities in temporary list:" % len(self.temp_activities))
+            for activity in activities:
+                print("\nActivity: %s" % activity)
+                activity_results = []
+                for method in methods_seen:
+                    score = mlca.scores.get((method, str(activity.id)), 0)
+                    method_name = method[0 + namespace_shift]
+                    category_name = method[1 + namespace_shift]
+                    indicator_name = method[2 + namespace_shift]
+                    result_row = [
+                        method_name,
+                        category_name,
+                        indicator_name,
+                        Method(method).metadata["unit"],
+                        score,
+                    ]
+                    if has_namespaced_methods():
+                        result_row.insert(0, method[0])
+                    activity_results.append(result_row)
+                    # Add to export list with activity identifier
+                    export_row = result_row + [activity]
+                    all_results_for_export.append(export_row)
+                print(tabulate(activity_results, headers=headers))
+            
+            # Calculate and show aggregated results (sum across all activities)
+            print("\nAggregated results (sum of all activities):")
+            aggregated_results = []
+            for method in methods_seen:
+                total_score = sum(
+                    mlca.scores.get((method, str(activity.id)), 0)
+                    for activity in activities
+                )
+                method_name = method[0 + namespace_shift]
+                category_name = method[1 + namespace_shift]
+                indicator_name = method[2 + namespace_shift]
+                result_row = [
+                    method_name,
+                    category_name,
+                    indicator_name,
+                    Method(method).metadata["unit"],
+                    total_score,
+                ]
+                if has_namespaced_methods():
+                    result_row.insert(0, method[0])
+                aggregated_results.append(result_row)
+                # Add to export list with aggregated identifier
+                export_row = result_row + ["AGGREGATED"]
+                all_results_for_export.append(export_row)
+            
+            
+            
+            # Create combined table with activity column for export
+            export_headers = headers + ["activity"]
+            self.tabulate_data = tabulate(
+                all_results_for_export,
+                headers=export_headers,
+                tablefmt="tsv",
+            )
+            print(tabulate(aggregated_results, headers=headers))
+            
+            # Store results for GCH command
+            self.gc_results = {
+                'activities': activities,
+                'activity_results': all_results_for_export,
+                'aggregated_results': aggregated_results,
+                'methods_seen': methods_seen,
+                'headers': headers,
+                'namespace_shift': namespace_shift,
+            }
+
+        else:
+            # Legacy API
+            # Build a list of functional units, one for each activity
+            bw2browser_cs = {
+                "inv": [{get_activity(key): 1} for key in self.temp_activities],
+                "ia": method_key_list,
+            }
+            tmp_cs_id = uuid.uuid1()
+            calculation_setups[str(tmp_cs_id)] = bw2browser_cs
+            mlca = bc.MultiLCA(str(tmp_cs_id))
+            
+            headers = ["method", "category", "subcategory", "unit", "score"]
+            if has_namespaced_methods():
+                headers.insert(0, "namespace")
+            
+            # Results are organized as: mlca.results has shape (num_methods, num_activities)
+            # Collect all results for export
+            all_results_for_export = []
+            
+            print("LCA results for %d activities in temporary list:" % len(self.temp_activities))
+            for idx, activity_key in enumerate(self.temp_activities):
+                activity = get_activity(activity_key)
+                activity_name = activity.get("name", "Unknown")
+                print("\nActivity %d: %s" % (idx + 1, activity_name))
+                activity_results = []
+                for i in range(len(mlca.methods)):
+                    method = mlca.methods[i]
+                    score = mlca.results[i, idx] if mlca.results.shape[1] > idx else 0
+                    result_row = [
+                        method[0],
+                        method[1],
+                        method[2],
+                        Method(method).metadata["unit"],
+                        score,
+                    ]
+                    if has_namespaced_methods():
+                        result_row.insert(0, method[0])
+                    activity_results.append(result_row)
+                    # Add to export list with activity identifier
+                    export_row = result_row + [activity_name]
+                    all_results_for_export.append(export_row)
+                print(tabulate(activity_results, headers=headers))
+            
+            # Show aggregated results
+            print("\nAggregated results (sum of all activities):")
+            aggregated_results = []
+            for i in range(len(mlca.methods)):
+                method = mlca.methods[i]
+                total_score = mlca.results[i, :].sum() if mlca.results.shape[1] > 0 else 0
+                result_row = [
+                    method[0],
+                    method[1],
+                    method[2],
+                    Method(method).metadata["unit"],
+                    total_score,
+                ]
+                if has_namespaced_methods():
+                    result_row.insert(0, method[0])
+                aggregated_results.append(result_row)
+                # Add to export list with aggregated identifier
+                export_row = result_row + ["AGGREGATED"]
+                all_results_for_export.append(export_row)
+
+            # Create combined table with activity column for export
+            export_headers = headers + ["activity"]
+            self.tabulate_data = tabulate(
+                all_results_for_export,
+                headers=export_headers,
+                tablefmt="tsv",
+            )
+            print(tabulate(aggregated_results, headers=headers))
+            
+            # Store results for GCH command
+            activities_list = [get_activity(key) for key in self.temp_activities]
+            self.gc_results = {
+                'activities': activities_list,
+                'activity_results': all_results_for_export,
+                'aggregated_results': aggregated_results,
+                'mlca': mlca,
+                'headers': headers,
+            }
+
+    def do_GCH(self, arg):
+        """Display ASCII bar charts for GC command results."""
+        if not self.gc_results:
+            print("No GC results available. Please run GC command first.")
+            return
+        
+        results = self.gc_results
+        activity_results = results['activity_results']
+        aggregated_results = results['aggregated_results']
+        headers = results.get('headers', [])
+        
+        # Find score column index (second to last column)
+        score_col_idx = -2
+        
+        # Extract activity names and scores
+        # Group results by activity
+        activity_scores = {}
+        activity_methods = {}
+        for row in activity_results:
+            # Last column is the activity identifier
+            activity_id = row[-1]
+            # Score is second to last column
+            try:
+                score = float(row[score_col_idx])
+            except (ValueError, TypeError):
+                score = 0.0
+            
+            if activity_id not in activity_scores:
+                activity_scores[activity_id] = []
+                activity_methods[activity_id] = []
+            
+            activity_scores[activity_id].append(score)
+            
+            # Extract method name for label
+            method_col_idx = 1 if 'namespace' in headers else 0
+            if len(row) > method_col_idx:
+                method_name = str(row[method_col_idx])
+                if len(row) > method_col_idx + 1:
+                    method_name = f"{row[method_col_idx]}/{row[method_col_idx+1]}"
+                activity_methods[activity_id].append(method_name)
+        
+        # Collect all scores and labels from all activities (excluding aggregated)
+        all_scores = []
+        all_labels = []
+        
+        # Create a mapping from activity_id to activity object/key for formatting
+        activities_map = {}
+        if 'activities' in results:
+            # Map activity objects to their string representation
+            for activity in results['activities']:
+                activities_map[activity] = activity
+                # Also map by activity key if it's stored as a key
+                if hasattr(activity, 'key'):
+                    activities_map[activity.key] = activity
+        
+        # Also check if we can map from temp_activities (these are the keys)
+        activity_keys_map = {}
+        for key in self.temp_activities:
+            activity_obj = get_activity(key)
+            # Map the activity object itself
+            activities_map[activity_obj] = key
+            # Map by key tuple
+            activities_map[key] = key
+            # Store key mapping
+            activity_keys_map[activity_obj] = key
+            activity_keys_map[key] = key
+        
+        for activity_id, scores in activity_scores.items():
+            if activity_id == "AGGREGATED":
+                continue
+            
+            # Get the activity key for formatting
+            activity_key = None
+            
+            # Check if activity_id is already a key (tuple)
+            if isinstance(activity_id, tuple) and len(activity_id) == 2:
+                activity_key = activity_id
+            # Check if it's an activity object
+            elif hasattr(activity_id, 'key'):
+                activity_key = activity_id.key
+            # Check if we have it in our maps
+            elif activity_id in activity_keys_map:
+                activity_key = activity_keys_map[activity_id]
+            elif activity_id in activities_map:
+                mapped = activities_map[activity_id]
+                if isinstance(mapped, tuple) and len(mapped) == 2:
+                    activity_key = mapped
+                elif hasattr(mapped, 'key'):
+                    activity_key = mapped.key
+            # Check if it's a string (legacy API stored activity name as string)
+            elif isinstance(activity_id, str) and activity_id != "AGGREGATED":
+                # Try to find the activity by name in temp_activities
+                for key in self.temp_activities:
+                    activity_obj = get_activity(key)
+                    if activity_obj.get("name") == activity_id:
+                        activity_key = key
+                        break
+            
+            # Get string representation of activity
+            if activity_key:
+                # Use format_activity to get full string representation
+                activity_str = self.format_activity(activity_key, max_length=200)
+            elif hasattr(activity_id, 'key'):
+                # It's an activity object, use its key
+                activity_str = self.format_activity(activity_id.key, max_length=200)
+            else:
+                # Fallback: try to get activity object and format it
+                try:
+                    # If it's already an activity object, try to get its string representation
+                    if hasattr(activity_id, 'get') and hasattr(activity_id, 'key'):
+                        activity_str = self.format_activity(activity_id.key, max_length=200)
+                    else:
+                        # Last resort: use string representation
+                        activity_str = str(activity_id)
+                except:
+                    activity_str = str(activity_id)
+            
+            # Get method names for this activity
+            method_names = activity_methods.get(activity_id, [f"Method {i+1}" for i in range(len(scores))])
+            
+            # Create labels combining activity string representation and method
+            for i, (score, method_name) in enumerate(zip(scores, method_names)):
+                all_scores.append(score)
+                all_labels.append(f"{activity_str} - {method_name}")
+        
+        if not all_scores:
+            print("No activity results to display.")
+            return
+        
+        # Display ASCII bar chart (always use simple ASCII, no plotext)
+        self._simple_ascii_chart(all_scores, all_labels)
+    
+    def _simple_ascii_chart(self, all_scores=None, all_labels=None):
+        """Fallback simple ASCII bar chart without external dependencies."""
+        if not self.gc_results:
+            return
+        
+        # If scores and labels are provided, use them directly
+        if all_scores is not None and all_labels is not None:
+            print("\n" + "="*80)
+            print("ASCII Bar Chart for GC Results (all activities)")
+            print("="*80)
+            print()
+            
+            # Calculate max label length for alignment
+            max_label_length = max(len(label) for label in all_labels) if all_labels else 0
+            max_label_length = min(max_label_length, 70)  # Cap at 70 characters for better display
+            
+            # Find max score for scaling
+            max_score = max(all_scores) if all_scores else 1
+            bar_width = 50  # Width of bar in characters
+            
+            # Create labeled bar chart with activity/method names
+            header_label = "Activity/Method"
+            header_padding = " " * max(0, max_label_length - len(header_label))
+            print(f"{header_label}{header_padding} │ Bar Chart" + " " * (bar_width - 9) + "Score")
+            print("-" * (max_label_length + bar_width + 20))
+            
+            # Display all scores in a single chart
+            for label, score in zip(all_labels, all_scores):
+                # Truncate label if needed
+                display_label = label
+                if len(label) > max_label_length:
+                    display_label = label[:max_label_length-3] + "..."
+                
+                # Calculate bar length
+                bar_length = int((score / max_score) * bar_width) if max_score > 0 else 0
+                bar = "█" * bar_length
+                
+                # Print label, bar, and score
+                print(f"{display_label:<{max_label_length}} │ {bar:<{bar_width}} {score:.4f}")
+            
+            print("-" * (max_label_length + bar_width + 20))
+            print(f"Max score: {max_score:.4f}")
+            return
+        
+        # Fallback: extract from gc_results if not provided
+        results = self.gc_results
+        activity_results = results['activity_results']
+        
+        # Create activity mapping similar to main function
+        activities_map = {}
+        activity_keys_map = {}
+        if 'activities' in results:
+            for activity in results['activities']:
+                activities_map[activity] = activity
+                if hasattr(activity, 'key'):
+                    activities_map[activity.key] = activity
+                    activity_keys_map[activity] = activity.key
+                    activity_keys_map[activity.key] = activity.key
+        
+        # Map from temp_activities
+        for key in self.temp_activities:
+            activity_obj = get_activity(key)
+            activities_map[activity_obj] = key
+            activities_map[key] = key
+            activity_keys_map[activity_obj] = key
+            activity_keys_map[key] = key
+        
+        # Group by activity
+        activity_scores = {}
+        activity_methods = {}
+        headers = results.get('headers', [])
+        method_col_idx = 1 if 'namespace' in headers else 0
+        
+        for row in activity_results:
+            activity_id = row[-1]
+            if activity_id == "AGGREGATED":
+                continue
+            
+            try:
+                score = float(row[-2])
+            except (ValueError, TypeError):
+                score = 0.0
+            
+            if activity_id not in activity_scores:
+                activity_scores[activity_id] = []
+                activity_methods[activity_id] = []
+            
+            activity_scores[activity_id].append(score)
+            
+            # Extract method name
+            if len(row) > method_col_idx:
+                method_name = str(row[method_col_idx])
+                if len(row) > method_col_idx + 1:
+                    method_name = f"{row[method_col_idx]}/{row[method_col_idx+1]}"
+                activity_methods[activity_id].append(method_name)
+        
+        # Combine all scores and labels
+        combined_scores = []
+        combined_labels = []
+        
+        for activity_id, scores in activity_scores.items():
+            # Get the activity key for formatting
+            activity_key = None
+            
+            # Check if activity_id is already a key (tuple)
+            if isinstance(activity_id, tuple) and len(activity_id) == 2:
+                activity_key = activity_id
+            # Check if it's an activity object
+            elif hasattr(activity_id, 'key'):
+                activity_key = activity_id.key
+            # Check if we have it in our maps
+            elif activity_id in activity_keys_map:
+                activity_key = activity_keys_map[activity_id]
+            elif activity_id in activities_map:
+                mapped = activities_map[activity_id]
+                if isinstance(mapped, tuple) and len(mapped) == 2:
+                    activity_key = mapped
+                elif hasattr(mapped, 'key'):
+                    activity_key = mapped.key
+            # Check if it's a string (legacy API stored activity name as string)
+            elif isinstance(activity_id, str) and activity_id != "AGGREGATED":
+                # Try to find the activity by name in temp_activities
+                for key in self.temp_activities:
+                    activity_obj = get_activity(key)
+                    if activity_obj.get("name") == activity_id:
+                        activity_key = key
+                        break
+            
+            # Get string representation of activity
+            if activity_key:
+                # Use format_activity to get full string representation
+                activity_str = self.format_activity(activity_key, max_length=200)
+            elif hasattr(activity_id, 'key'):
+                # It's an activity object, use its key
+                activity_str = self.format_activity(activity_id.key, max_length=200)
+            else:
+                # Fallback: try to get activity object and format it
+                try:
+                    if hasattr(activity_id, 'get') and hasattr(activity_id, 'key'):
+                        activity_str = self.format_activity(activity_id.key, max_length=200)
+                    else:
+                        activity_str = str(activity_id)
+                except:
+                    activity_str = str(activity_id)
+            
+            method_names = activity_methods.get(activity_id, [f"Method {i+1}" for i in range(len(scores))])
+            
+            for score, method_name in zip(scores, method_names):
+                combined_scores.append(score)
+                combined_labels.append(f"{activity_str} - {method_name}")
+        
+        if not combined_scores:
+            return
+        
+        print("\n" + "="*80)
+        print("ASCII Bar Chart for GC Results (all activities)")
+        print("="*80)
+        print()
+        
+        # Calculate max label length for alignment
+        max_label_length = max(len(label) for label in combined_labels) if combined_labels else 0
+        max_label_length = min(max_label_length, 70)  # Cap at 70 characters for better display
+        
+        # Find max score for scaling
+        max_score = max(combined_scores) if combined_scores else 1
+        bar_width = 50  # Width of bar in characters
+        
+        # Create labeled bar chart with activity/method names
+        header_label = "Activity/Method"
+        header_padding = " " * max(0, max_label_length - len(header_label))
+        print(f"{header_label}{header_padding} │ Bar Chart" + " " * (bar_width - 9) + "Score")
+        print("-" * (max_label_length + bar_width + 20))
+        
+        # Display all scores in a single chart
+        for label, score in zip(combined_labels, combined_scores):
+            # Truncate label if needed
+            display_label = label
+            if len(label) > max_label_length:
+                display_label = label[:max_label_length-3] + "..."
+            
+            # Calculate bar length
+            bar_length = int((score / max_score) * bar_width) if max_score > 0 else 0
+            bar = "█" * bar_length
+            
+            # Print label, bar, and score
+            print(f"{display_label:<{max_label_length}} │ {bar:<{bar_width}} {score:.4f}")
+        
+        print("-" * (max_label_length + bar_width + 20))
+        print(f"Max score: {max_score:.4f}")
+
     def do_ta(self, arg):
         """Display top activities if an activity + method are selected."""
         if self.activity:
@@ -1697,6 +2247,33 @@ Autosave is turned %(autosave)s.""" % {
         else:
             print("Please select a project first")
 
+    def do_add(self, arg):
+        """Add the currently selected activity to the temporary activities list."""
+        if not self.activity:
+            print("No activity currently selected")
+        else:
+            if self.activity not in self.temp_activities:
+                self.temp_activities.append(self.activity)
+                print("Added activity to temporary list: %s" % self.format_activity(self.activity))
+                print("Temporary list now contains %d activities" % len(self.temp_activities))
+            else:
+                print("Activity already in temporary list: %s" % self.format_activity(self.activity))
+
+    def do_clear(self, arg):
+        """Clear the temporary activities list."""
+        count = len(self.temp_activities)
+        self.temp_activities = []
+        print("Cleared temporary activities list (%d activities removed)" % count)
+
+    def do_lt(self, arg):
+        """List all activities in the temporary activities list."""
+        if not self.temp_activities:
+            print("Temporary activities list is empty")
+        else:
+            print("Temporary activities list (%d activities):" % len(self.temp_activities))
+            for index, activity_key in enumerate(self.temp_activities):
+                print("[%d]: %s" % (index, self.format_activity(activity_key)))
+
     def do_ca(self, arg):
         """Print the recursive calculation of an LCA, accepting cutoff as arg."""
         if all([self.method, self.category, self.subcategory]) and self.activity:
@@ -1746,6 +2323,7 @@ Autosave is turned %(autosave)s.""" % {
                 for prop,value in e.as_dict().items():
                     print(f"\t {prop}: {value}")
             print("")
+
 
 def bw2_compat_annotated_top_emissions(lca, names=True, **kwargs):
     """Get list of most damaging biosphere flows in an LCA, sorted by ``abs(direct impact)``. # noqa: E501
