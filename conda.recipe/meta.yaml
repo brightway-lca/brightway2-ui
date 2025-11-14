@@ -29,6 +29,7 @@ requirements:
                 - stats_arrays
                 - tabulate
                 - genson
+                - typing_extensions >=4.12.2  # [py>=313]
 
 about:
         home: https://github.com/brightway-lca/brightway2-ui
