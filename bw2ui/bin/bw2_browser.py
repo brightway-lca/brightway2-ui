@@ -1409,7 +1409,7 @@ Autosave is turned %(autosave)s.""" % {
                 for m in methods:
                     if m[0] == self.method:
                         method_key_list.append(m)
-        return method_key_list
+        return sorted(method_key_list)
 
     def do_G(self, arg):
         """Do an LCIA of the selected activity + method[s]"""
@@ -1442,7 +1442,11 @@ Autosave is turned %(autosave)s.""" % {
                 for (method, _), score in mlca.scores.items():
                     method_name = method[0 + namespace_shift]
                     category_name = method[1 + namespace_shift]
-                    indicator_name = method[2 + namespace_shift]
+                    if len(method) == 5:
+                        subcategory_name = method[2 + namespace_shift]
+                        indicator_name = method[3 + namespace_shift]
+                    else:
+                        indicator_name = method[2 + namespace_shift]
                     formatted_res_item = [
                         method_name,
                         category_name,
@@ -1450,6 +1454,8 @@ Autosave is turned %(autosave)s.""" % {
                         Method(method).metadata["unit"],
                         score,
                     ]
+                    if len(method) == 5:
+                        formatted_res_item.insert(2, subcategory_name)
                     if has_namespaced_methods():
                         formatted_res_item.insert(0, method[0])
 
@@ -1476,6 +1482,9 @@ Autosave is turned %(autosave)s.""" % {
             headers = ["method", "category", "subcategory", "unit", "score"]
             if has_namespaced_methods():
                 headers.insert(0, "namespace")
+            if len(formatted_res[0]) == 5:
+                headers.insert(2, "subcategory")
+
             self.tabulate_data = tabulate(
                 formatted_res,
                 headers=headers,
@@ -2369,7 +2378,7 @@ def is_legacy_bd():
 
 
 def has_namespaced_methods():
-    return len(list(methods)[0]) == 4
+    return len(list(methods)[0]) >= 4
 
 
 def search_bw2(search_criterion, criterion_value, database, needle, search_limit):
