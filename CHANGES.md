@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [0.47.0]
+
++ Removed the web-browser dead code and deps
+
 ## [0.46.0]
 
 + New feature: compare LCIA results of multiple activities + ascii chart 🩵
