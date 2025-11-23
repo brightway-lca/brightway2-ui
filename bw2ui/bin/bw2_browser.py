@@ -675,7 +675,7 @@ Autosave is turned %(autosave)s.""" % {
                         "formatted": ["%(name)s" % {"name": name} for name in m_names],
                     }
                 )
-                self.print_current_options("Method namespaces")
+                methods_label="Method namespaces"
             else:
                 self.set_current_options(
                     {
@@ -684,7 +684,8 @@ Autosave is turned %(autosave)s.""" % {
                         "formatted": ["%(name)s" % {"name": name} for name in m_names],
                     }
                 )
-                self.print_current_options("Methods")
+                methods_label="Methods"
+            self.print_current_options(methods_label)
         else:
             self.set_current_options(None)
             self.update_prompt()
@@ -780,7 +781,10 @@ Autosave is turned %(autosave)s.""" % {
         if (
             self.activity and "biosphere" in self.database
         ):  # TODO: recover generic name instead of hard coded one
-            mkey = (self.method, self.category, self.subcategory)
+            if self.method_namespace:
+                mkey = (self.method_namespace, self.method, self.category, self.subcategory)
+            else:
+                mkey = (self.method, self.category, self.subcategory)
             self.print_cfs([mkey], self.activity)
         self.update_prompt()
 
