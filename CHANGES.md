@@ -1,5 +1,10 @@
 # ui Changelog
 
+## [0.47.1]
+
++ fix #70: method category selection works now for biosphere nodes
++ fix #64: if categories are empty, do not display "None" in prompt & options
+
 ## [0.47.0]
 
 + Removed the web-browser dead code and deps
