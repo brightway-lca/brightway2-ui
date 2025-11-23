@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0"]
+requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -12,6 +12,7 @@ maintainers = [
 ]
 description = "A web and command line user interface, part of the Brightway2 LCA framework https://brightway.dev."
 readme = "README.md"
+license-files = ["LICENSE"]
 dynamic = ["version"]
 # Add here all kinds of additional classifiers as defined under
 # https://pypi.org/classifiers/
@@ -23,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering"
@@ -43,6 +45,7 @@ dependencies = [
         "stats_arrays",
         "tabulate",
         "genson",
+        "typing_extensions>=4.12.2; python_version >= '3.13'",
 ]
 
 [project.urls]
@@ -71,17 +74,17 @@ dev = [
     "setuptools",
 ]
 docs = [
-    "furo==2024.1.29",
-    "myst_parser==2.0.0",
-    "sphinx==7.2.6",
+    "furo==2025.9.25",
+    "myst_parser==4.0.1",
+    "sphinx==8.2.3",
 ]
 
 [project.scripts]
 bw2-web = "bw2ui.bin.bw2_web:main"
 bw2-browser = "bw2ui.bin.bw2_browser:main"
 
+
 [tool.setuptools]
-license-files = ["LICENSE"]
 include-package-data = true
 
 [tool.setuptools.packages.find]
