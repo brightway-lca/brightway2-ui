@@ -1409,7 +1409,7 @@ Autosave is turned %(autosave)s.""" % {
                 for m in methods:
                     if m[0] == self.method:
                         method_key_list.append(m)
-        return method_key_list
+        return sorted(method_key_list)
 
     def do_G(self, arg):
         """Do an LCIA of the selected activity + method[s]"""
