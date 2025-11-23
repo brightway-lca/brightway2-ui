@@ -63,6 +63,8 @@ from bw2data.parameters import (
 from docopt import docopt
 from tabulate import tabulate
 
+from bw2io import backup_project_directory
+
 warnings.filterwarnings("ignore", ".*Read only project.*")
 
 FTS5_ENABLED_BD_VERSION = "4.0.dev47"
@@ -108,6 +110,9 @@ Basic commands:
 
 Working with projects:
     lpj: List available projects.
+    backup [directory]: Backup the current project. Optionally specify a target \
+directory. If no directory is specified, the backup will be created in the \
+projects directory with a timestamp.
 
 Working with databases:
     ldb: List available databases.
@@ -1169,6 +1174,37 @@ Autosave is turned %(autosave)s.""" % {
     def do_lpj(self, arg):
         """List available projects"""
         self.list_projects()
+
+    def do_backup(self, target_dir=None):
+        """Backup the current project. Optionally specify a target directory."""
+        if not self.project:
+            print("Please select a project first")
+            return
+
+        dir_backup = None
+        if target_dir and target_dir.strip():
+            dir_backup = os.path.expanduser(target_dir.strip())
+            # Check if directory exists before calling backup function
+            if not os.path.exists(dir_backup):
+                print("Backup directory does not exist: %s" % dir_backup)
+                return
+            if not os.path.isdir(dir_backup):
+                print("Backup path is not a directory: %s" % dir_backup)
+                return
+
+        try:
+            backup_path = backup_project_directory(self.project, dir_backup=dir_backup)
+            print("Project '%s' backed up successfully to: %s" % (self.project, backup_path))
+        except ValueError as e:
+            print("Error: Project does not exist or invalid project name: %s" % e)
+        except FileNotFoundError as e:
+            print("Error: Backup directory not found: %s" % e)
+        except PermissionError as e:
+            print("Error: Permission denied. Cannot write to backup directory: %s" % e)
+        except Exception as e:
+            print("Error during backup: %s" % e)
+            import traceback
+            traceback.print_exc()
 
     def do_ldb(self, arg):
         """List available databases"""
