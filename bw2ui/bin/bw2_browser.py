@@ -296,7 +296,7 @@ class ActivityBrowser(cmd.Cmd):
             allowed_length = 76 - 8 - len(self.database)
             activity_ = get_activity(self.activity)
             name = activity_.get("name", "Unknown")
-            categories = activity_.get("categories", [])
+            categories = activity_.get("categories", []) or []
             if allowed_length < len(name):
                 name = name[:allowed_length]
             self.prompt = "%(pj)s@(%(db)s) %(n)s %(categories)s" % {
@@ -341,7 +341,7 @@ class ActivityBrowser(cmd.Cmd):
             kurtz["name"] = kurtz["name"][:max_length] + "..."
         # TODO: Can adjust string lengths with product name, but just ignore for now
         product = ds.get("reference product", "")
-        categories = ds.get("categories", "")
+        categories = ds.get("categories", "") or ""
         if product:
             product += ", " % {}
         kurtz["product"] = product
@@ -395,7 +395,7 @@ Autosave is turned %(autosave)s.""" % {
                 else:
                     flow_key = tuple((cf[0][0], cf[0][1]))
                     flow = get_activity(flow_key)
-                flow_cat_tup = flow.get("categories", ("",))
+                flow_cat_tup = flow.get("categories", ("",)) or ("",)
                 flow_cat = flow_cat_tup[0]
                 flow_subcat = None
                 if len(flow_cat_tup) == 2:
