@@ -26,12 +26,10 @@ import os
 import pprint
 import re
 import textwrap
-import threading
 import time
 import traceback
 import uuid
 import warnings
-import webbrowser
 
 import bw2analyzer as bwa
 import bw2calc as bc
@@ -129,7 +127,6 @@ Working with activities:
 by name.
     i: Info on current activity.
     ii: Extended Info on current activity.
-    web: Open current activity in web browser. Must have bw2-web running.
     r: Choose a random activity from current database.
     u: List upstream activities (inputs for the current activity).
     up: List upstream activities with pedigree info if avail (inputs for the current \
@@ -1354,17 +1351,6 @@ Autosave is turned %(autosave)s.""" % {
             self.format_exchanges_as_options(es, "technosphere", show_uncertainty=True)
             self.print_current_options("Upstream inputs")
 
-    def do_web(self, arg):
-        """Open a web browser to current activity"""
-        if not self.activity:
-            print("No current activity" % {})
-        else:
-            url = "http://127.0.0.1:5000/view/%(db)s/%(key)s" % {
-                "db": self.database,
-                "key": self.activity[1],
-            }
-            threading.Timer(0.1, lambda: webbrowser.open_new_tab(url)).start()
-
     def do_wh(self, arg):
         output_dir = projects.request_directory("export")
         fp = os.path.join(output_dir, "browser history.%s.txt" % time.ctime())
@@ -1723,7 +1709,6 @@ Autosave is turned %(autosave)s.""" % {
         
         results = self.gc_results
         activity_results = results['activity_results']
-        aggregated_results = results['aggregated_results']
         headers = results.get('headers', [])
         
         # Find score column index (second to last column)

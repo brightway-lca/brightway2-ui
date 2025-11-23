@@ -10,7 +10,7 @@ authors = [
 maintainers = [
   { name="Tomás NAVARRETE GUTIÉRREZ", email="tngTUDOR@users.noreply.github.com" }
 ]
-description = "A web and command line user interface, part of the Brightway2 LCA framework https://brightway.dev."
+description = "A command line user interface, part of the Brightway2 LCA framework https://brightway.dev."
 readme = "README.md"
 license-files = ["LICENSE"]
 dynamic = ["version"]
@@ -39,12 +39,8 @@ dependencies = [
         "bw2calc",
         "bw2analyzer",
         "docopt",
-        "eight",
-        "flask",
-        "jinja2",
         "stats_arrays",
         "tabulate",
-        "genson",
         "typing_extensions>=4.12.2; python_version >= '3.13'",
 ]
 
@@ -80,9 +76,7 @@ docs = [
 ]
 
 [project.scripts]
-bw2-web = "bw2ui.bin.bw2_web:main"
 bw2-browser = "bw2ui.bin.bw2_browser:main"
-
 
 [tool.setuptools]
 include-package-data = true
