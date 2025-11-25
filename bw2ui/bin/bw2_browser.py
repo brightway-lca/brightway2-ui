@@ -25,6 +25,7 @@ import math
 import os
 import pprint
 import re
+import shlex
 import textwrap
 import time
 import traceback
@@ -63,7 +64,8 @@ from bw2data.parameters import (
 from docopt import docopt
 from tabulate import tabulate
 
-from bw2io import backup_project_directory
+
+from bw2io import backup_project_directory, restore_project_directory
 
 warnings.filterwarnings("ignore", ".*Read only project.*")
 
@@ -113,6 +115,8 @@ Working with projects:
     backup [directory]: Backup the current project. Optionally specify a target \
 directory. If no directory is specified, the backup will be created in the \
 projects directory with a timestamp.
+    restore <archive> [options]: Restore a project from an archive. Supported \
+options: --project NAME, --overwrite.
 
 Working with databases:
     ldb: List available databases.
@@ -1203,7 +1207,100 @@ Autosave is turned %(autosave)s.""" % {
             print("Error: Permission denied. Cannot write to backup directory: %s" % e)
         except Exception as e:
             print("Error during backup: %s" % e)
-            import traceback
+            traceback.print_exc()
+
+    def do_restore(self, arg):
+        """Restore a project from a backup archive."""
+        try:
+            tokens = shlex.split(arg)
+        except ValueError as exc:
+            print("Error parsing arguments: %s" % exc)
+            return
+
+        if not tokens:
+            print("Usage: restore <archive> [--project NAME] [--overwrite]")
+            return
+
+        archive_path = None
+        project_name = None
+        overwrite = False
+        extra_args = []
+
+        i = 0
+        while i < len(tokens):
+            token = tokens[i]
+            if token in ("--project", "-p"):
+                i += 1
+                if i >= len(tokens):
+                    print("Missing value for %s" % token)
+                    return
+                project_name = tokens[i]
+            elif token in ("--overwrite", "-o"):
+                overwrite = True
+            else:
+                if archive_path is None:
+                    archive_path = token
+                elif project_name is None:
+                    project_name = token
+                else:
+                    extra_args.append(token)
+            i += 1
+
+        if extra_args:
+            print("Unrecognized arguments: %s" % ", ".join(extra_args))
+            print("Usage: restore <archive> [--project NAME] [--overwrite]")
+            return
+
+        if not archive_path:
+            print("Usage: restore <archive> [--project NAME] [--overwrite]")
+            return
+
+        archive_path = os.path.expanduser(archive_path)
+        if not os.path.exists(archive_path):
+            print("Archive not found: %s" % archive_path)
+            return
+        if not os.path.isfile(archive_path):
+            print("Archive path is not a file: %s" % archive_path)
+            return
+
+        if project_name and project_name in projects and not overwrite:
+            print(
+                "Project '%s' already exists. Use --overwrite to replace it."
+                % project_name
+            )
+            return
+
+        if overwrite:
+            confirm_name = project_name or "the project stored in the archive"
+            answer = (
+                input(
+                    "You are about to overwrite %s. Continue? [y/N]: " % confirm_name
+                )
+                .strip()
+                .lower()
+            )
+            if answer not in ("y", "yes"):
+                print("Restore cancelled.")
+                return
+
+        try:
+            restored_project = restore_project_directory(
+                archive_path,
+                project_name=project_name,
+                overwrite_existing=overwrite,
+                switch=True,
+            )
+            print(
+                "Project '%s' restored successfully from %s"
+                % (restored_project, archive_path)
+            )
+            self.choose_project(restored_project)
+        except FileNotFoundError as exc:
+            print("Project archive not found, Error: %s" % exc)
+        except ValueError as exc:
+            print("Project archive is invalid, Error: %s" % exc)
+        except Exception as exc:
+            print("Error during restore: %s" % exc)
             traceback.print_exc()
 
     def do_ldb(self, arg):
