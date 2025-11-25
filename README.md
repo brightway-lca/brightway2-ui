@@ -1,7 +1,6 @@
 # Brightway2-UI
 
-[![PyPI](https://img.shields.io/pypi/v/bw25ui.svg)][![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fbrightway-lca%2Fbrightway2-ui.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fbrightway-lca%2Fbrightway2-ui?ref=badge_shield)
-[pypi status]
+[![PyPI](https://img.shields.io/pypi/v/bw25ui.svg)][pypi status]
 [![Status](https://img.shields.io/pypi/status/bw25ui.svg)][pypi status]
 [![Python Version](https://img.shields.io/pypi/pyversions/bw25ui)][pypi status]
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)][license]
