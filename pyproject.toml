@@ -13,6 +13,7 @@ maintainers = [
 description = "A command line user interface, part of the Brightway2 LCA framework https://brightway.dev."
 readme = "README.md"
 license-files = ["LICENSE"]
+license = "BSD-3-Clause"
 dynamic = ["version"]
 # Add here all kinds of additional classifiers as defined under
 # https://pypi.org/classifiers/
