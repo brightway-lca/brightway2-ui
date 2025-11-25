@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [0.47.3]
+
++ implement backup and restore project commands
+
 ## [0.47.2]
 
 + correctly specify licensing terms for packaging
