@@ -23,22 +23,17 @@ requirements:
                 - bw2calc <2
                 - bw2analyzer >=0.10
                 - docopt
-                - eight
-                - flask
-                - jinja2
                 - stats_arrays
                 - tabulate
-                - genson
 
 about:
         home: https://github.com/brightway-lca/brightway2-ui
-        license: BSD
+        license: BSD 3-Clause
         license_file: LICENSE
 
 build:
         entry_points:
                 - bw2-browser = bw2ui.bin.bw2_browser:main
-                - bw2-web     = bw2ui.bin.bw2_web:main
 
         noarch: python
         script: {{ PYTHON }} -m pip install --no-deps --no-build-isolation . -vv

@@ -1,5 +1,31 @@
 # ui Changelog
 
+## [0.47.2]
+
++ correctly specify licensing terms for packaging
+
+## [0.47.1]
+
++ fix #70: method category selection works now for biosphere nodes
++ fix #64: if categories are empty, do not display "None" in prompt & options
+
+## [0.47.0]
+
++ Removed the web-browser dead code and deps
+
+## [0.46.0]
+
++ New feature: compare LCIA results of multiple activities + ascii chart 🩵
+
+## [0.45.0]
+
++ Fix: when flows don't have categories, default to printing empty string in the cfs command.
+
+## [0.44.0]
+
++ Fix issue 52: supplying faulty ids to a command, gracefuly fails now
++ Feature: show production exchanges of selected activity
+
 ## [0.43.0]
 
 + Fix search incompatibility with FTS5
