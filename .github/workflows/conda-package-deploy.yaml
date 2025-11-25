@@ -30,9 +30,8 @@ jobs:
           conda info
           conda config --set auto_update_conda False
           conda install -y -q conda-build anaconda-client
-          anaconda --token ${{ secrets.ANACONDA_TOKEN }}
           conda config --set anaconda_upload yes
           cd conda.recipe
-          conda build -c conda-forge -c cmutel -c haasad .
+          conda build --token ${{ secrets.ANACONDA_TOKEN }} -c conda-forge -c cmutel -c haasad .
           cd ../conda.recipe-legacy
-          conda build -c conda-forge -c cmutel -c haasad .
+          conda build --token ${{ secrets.ANACONDA_TOKEN }} -c conda-forge -c cmutel -c haasad .
