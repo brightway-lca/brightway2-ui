@@ -28,7 +28,7 @@ requirements:
 
 about:
         home: https://github.com/brightway-lca/brightway2-ui
-        license: BSD
+        license: BSD 3-Clause
         license_file: LICENSE
 
 build:

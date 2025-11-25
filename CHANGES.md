@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [0.47.2]
+
++ correctly specify licensing terms for packaging
+
 ## [0.47.1]
 
 + fix #70: method category selection works now for biosphere nodes
