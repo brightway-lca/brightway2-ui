@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/bw25ui.svg)][pypi status]
 [![Status](https://img.shields.io/pypi/status/bw25ui.svg)][pypi status]
 [![Python Version](https://img.shields.io/pypi/pyversions/bw25ui)][pypi status]
-[![License](https://img.shields.io/pypi/l/bw25ui)][license]
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)][license]
 
 [![Read the documentation at https://brightway2-ui.readthedocs.io/](https://img.shields.io/readthedocs/brightway2-ui/latest.svg?label=Read%20the%20Docs)][read the docs]
 [![Codecov](https://codecov.io/gh/brightway-lca/brightway2-ui/branch/main/graph/badge.svg)][codecov]
