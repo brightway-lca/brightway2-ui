@@ -3,6 +3,16 @@
 """Brightway2 database and activity browser.
 Developed by Bernhard Steubing and Chris Mutel, 2013
 
+Usage:
+  bw2-browser
+  bw2-browser <project>
+  bw2-browser <project> <database>
+  bw2-browser <project> <database> <activity-id>
+
+Options:
+  -h --help     Show this screen.
+  --version     Show version.
+
 """
 from __future__ import print_function, unicode_literals
 

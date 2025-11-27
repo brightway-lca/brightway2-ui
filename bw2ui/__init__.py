@@ -5,4 +5,4 @@ __all__ = (
     # Add functions and variables you want exposed in `bw2ui.` namespace here
 )
 
-__version__ = "0.47.3"
+__version__ = "0.48.0"
