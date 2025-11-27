@@ -13,6 +13,7 @@ hidden:
 maxdepth: 1
 ---
 self
+content/install
 content/usage
 content/commands
 content/api/index
