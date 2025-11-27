@@ -1,6 +1,6 @@
 # Usage
 
-This is a command-line utility to browse, search, and filter databases.
+This is a command-line utility to browse, search, and filter databases. When you’re ready to boss it around, grab the full lexicon in [the commands section](./commands.md) — it's the tool's secret diary, except it wants you to read it.
 
 ## Tool invocation
 
