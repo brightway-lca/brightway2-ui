@@ -35,6 +35,7 @@ extensions = [
     "sphinx_copybutton",
     # custom not found extension
     "notfound.extension",
+    "sphinxcontrib.asciinema",
 ]
 
 napoleon_numpy_docstring = True
