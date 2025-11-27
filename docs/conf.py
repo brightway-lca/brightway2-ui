@@ -33,6 +33,8 @@ extensions = [
     'sphinx_design',
     # copy button on code blocks
     "sphinx_copybutton",
+    # custom not found extension
+    "notfound.extension",
 ]
 
 napoleon_numpy_docstring = True
