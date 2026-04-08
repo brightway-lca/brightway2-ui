@@ -25,6 +25,8 @@ In the following asciinema recording, you can see how to invoke the tool, select
 
 Because it’s entirely keyboard-driven, there’s no mouse interaction to worry about. It's more or less like a conversation: you give short instructions, it replies with lists, details, or questions. When a numbered list is on screen, responding with the corresponding number confirms the selection instantly. When you want to do something different, type the command and press `Enter`. Easy rhythm, minimal ceremony. ✨
 
+When working with modern Brightway node types, `aa` lists everything in the selected database (including processes). Use `lprods` to list only product-like nodes (`product` and `process_with_reference_product`) before selecting a node for LCIA-oriented commands.
+
 ## Tool invocation
 
 The package provides an executable script: ``bw2-browser`` (regardless of the installed package, [bw25ui](https://pypi.org/project/bw25ui/) or [bw2ui](https://pypi.org/project/bw2ui/).

@@ -33,6 +33,7 @@ import warnings
 
 import bw2analyzer as bwa
 import bw2calc as bc
+import bw2data as bd
 from bw2data import __version__ as bd_version
 from bw2data import (
     Database,
@@ -133,6 +134,7 @@ Working with activities:
     a id: Go to activity id in current database. Complex ids in quotes.
     aa: List all activities in current database. aa name sorts the activities \
 by name.
+    lprods: List product activities only (product and process_with_reference_product).
     i: Info on current activity.
     ii: Extended Info on current activity.
     r: Choose a random activity from current database.
@@ -2265,6 +2267,47 @@ Autosave is turned %(autosave)s.""" % {
             )
 
             self.print_current_options("Activities in database")
+
+    def do_lprods(self, arg):
+        """List product or chimaera activities in the current database."""
+        if not self.database:
+            print("Please choose a database first")
+            return
+
+        product_types = set()
+        for attr in (
+            "product_node_type",
+            "product_node_types",
+            "chimaera_node_default",
+            "chimaera_node_defaults",
+        ):
+            value = getattr(bd.labels, attr, None)
+            if value is None:
+                continue
+            if isinstance(value, (set, tuple, list)):
+                product_types.update(value)
+            else:
+                product_types.add(value)
+
+        # Compatibility fallback for older/newer Brightway label APIs.
+        if not product_types:
+            product_types = {"product", "process_with_reference_product"}
+        db = Database(self.database)
+        activities = [
+            activity for activity in db if activity.get("type") in product_types
+        ]
+        if arg and isinstance(arg, str) and arg.lower() == "name":
+            activities.sort(key=lambda a: a.get("name"))
+        activity_keys = [(self.database, activity["code"]) for activity in activities]
+        formatted_activities = [self.format_activity(key) for key in activity_keys]
+        self.set_current_options(
+            {
+                "type": "activities",
+                "options": activity_keys,
+                "formatted": formatted_activities,
+            }
+        )
+        self.print_current_options("Product or chimaera activities in database")
 
     def do_lpam(self, arg):
         """List all (Project, Database, Activity) parameters."""

@@ -35,6 +35,7 @@ The tool speaks fluent command-line. Below is its full vocabulary, arranged by m
 
 - `a <id>` – Jumps straight to an activity by code or integer ID (for BW25).
 - `aa [name]` – Lists all activities in the current database, optionally sorted by name.
+- `lprods [name]` – Lists only product-like nodes in the current database (`product` and `process_with_reference_product`), optionally sorted by name.
 - `i` / `ii` – Shows concise or extended activity info. `ii` is basically `i` but more intimate.
 - `r` – Picks a random activity. Because serendipity 💜.
 - `u`, `up`, `uu`, `un` – Variations on "show upstream technosphere inputs", adding pedigree, formulas, or uncertainty details respectively.

@@ -1,8 +1,9 @@
 # ui Changelog
 
-## [0.47.3]
+## [0.49.0] - 2026-04-08
 
 + implement backup and restore project commands
++ add `lprods` command to list product-like nodes only (`product` and `process_with_reference_product`), reducing LCIA failures from selecting process-only nodes
 
 ## [0.47.2]
 
