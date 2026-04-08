@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [0.49.1] - 2026-04-08
+
++ show available products for a plain process when attempting to do G on a plain process
+
 ## [0.49.0] - 2026-04-08
 
 + implement backup and restore project commands

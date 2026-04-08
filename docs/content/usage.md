@@ -27,6 +27,8 @@ Because it’s entirely keyboard-driven, there’s no mouse interaction to worry
 
 When working with modern Brightway node types, `aa` lists everything in the selected database (including processes). Use `lprods` to list only product-like nodes (`product` and `process_with_reference_product`) before selecting a node for LCIA-oriented commands.
 
+If you still run `G` while a plain process is selected, the browser now fails gracefully: it warns that LCIA requires a product node, then prints a numbered list of products from that process production exchanges. Select one by number and run `G` again.
+
 ## Tool invocation
 
 The package provides an executable script: ``bw2-browser`` (regardless of the installed package, [bw25ui](https://pypi.org/project/bw25ui/) or [bw2ui](https://pypi.org/project/bw2ui/).

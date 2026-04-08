@@ -43,7 +43,7 @@ The tool speaks fluent command-line. Below is its full vocabulary, arranged by m
 - `b` – Lists biosphere flows for the current activity.
 - `pe` / `pei` – Displays production exchanges and their detailed metadata.
 - `cfs` – Prints characterization factors for the current method/biosphere activity combo.
-- `G` – Runs an LCIA on the current activity for the selected method(s). Multiverse-friendly (i.e.: _if a full method is selected, and not a specific category and subcategory, it will do the LCIA of all the categories and subcategories of the method).
+- `G` – Runs an LCIA on the current activity for the selected method(s). If the selected node is a plain process, `G` now refuses gracefully, lists products from that process’ production exchanges as selectable options, and lets you pick one before running `G` again. Multiverse-friendly (i.e.: _if a full method is selected, and not a specific category and subcategory, it will do the LCIA of all the categories and subcategories of the method_).
 - `ta` / `te` – After an LCIA, list top activities or top emissions.
 - `ca [cutoff]` – Prints a recursive contribution analysis, optionally trimming at `cutoff`.
 - `sc [cutoff]` – Similar, but for the supply chain view.

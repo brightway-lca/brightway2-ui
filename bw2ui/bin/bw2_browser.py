@@ -1580,11 +1580,24 @@ Autosave is turned %(autosave)s.""" % {
                 selected_type in plain_process_types
                 and selected_type not in product_like_types
             ):
+                production_exchanges = [
+                    exc
+                    for exc in selected_activity.exchanges()
+                    if exc.get("type") == "production"
+                ]
                 print(
-                    "Selected node is a plain process (%s). LCIA can only be performed on products. "
-                    "Use `lprods` to list product nodes and select one first."
+                    "Selected node is a plain process (%s). LCIA can only be performed on products."
                     % selected_activity.id
                 )
+                if production_exchanges:
+                    self.format_exchanges_as_options(production_exchanges, "production")
+                    self.print_current_options(
+                        "Products produced by current process (choose one, then run `G` again)"
+                    )
+                else:
+                    print(
+                        "No production exchanges found for this process. Use `lprods` to list product nodes."
+                    )
                 return
 
             method_key_list = self.build_method_key_list()
