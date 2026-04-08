@@ -1138,7 +1138,7 @@ Autosave is turned %(autosave)s.""" % {
                     "code",
                 ]
             ]:
-                if field.casefold() == "comment".casefold():
+                if field.casefold() == "comment".casefold() and ds.get(field):
                     t_wrapper.replace_whitespace = False
                     contents = "\n".join(
                         [
