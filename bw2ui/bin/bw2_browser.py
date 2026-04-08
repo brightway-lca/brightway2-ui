@@ -1545,6 +1545,48 @@ Autosave is turned %(autosave)s.""" % {
     def do_G(self, arg):
         """Do an LCIA of the selected activity + method[s]"""
         if self.activity and self.method:
+            selected_activity = get_activity(self.activity)
+
+            def label_values(*attrs):
+                values = set()
+                for attr in attrs:
+                    value = getattr(bd.labels, attr, None)
+                    if value is None:
+                        continue
+                    if isinstance(value, (set, tuple, list)):
+                        values.update(value)
+                    else:
+                        values.add(value)
+                return values
+
+            product_like_types = label_values(
+                "product_node_type",
+                "product_node_types",
+                "chimaera_node_default",
+                "chimaera_node_defaults",
+            )
+            plain_process_types = label_values(
+                "process_node_type",
+                "process_node_types",
+                "process_node_default",
+                "process_node_defaults",
+            )
+            # Compatibility fallback if labels are unavailable in current bw2data version
+            if not plain_process_types:
+                plain_process_types = {"process"}
+
+            selected_type = selected_activity.get("type")
+            if (
+                selected_type in plain_process_types
+                and selected_type not in product_like_types
+            ):
+                print(
+                    "Selected node is a plain process (%s). LCIA can only be performed on products. "
+                    "Use `lprods` to list product nodes and select one first."
+                    % selected_activity.id
+                )
+                return
+
             method_key_list = self.build_method_key_list()
 
             if has_namespaced_methods():
@@ -1559,7 +1601,7 @@ Autosave is turned %(autosave)s.""" % {
             ):
                 # the configuration
                 config = {"impact_categories": method_key_list}
-                activities = [get_activity(self.activity)]
+                activities = [selected_activity]
                 func_units = {a["name"]: {a.id: 1.0} for a in activities}
                 data_objs = get_multilca_data_objs(
                     functional_units=func_units, method_config=config
@@ -1567,8 +1609,15 @@ Autosave is turned %(autosave)s.""" % {
                 mlca = bc.MultiLCA(
                     demands=func_units, method_config=config, data_objs=data_objs
                 )
-                mlca.lci()
-                mlca.lcia()
+                try:
+                    mlca.lci()
+                    mlca.lcia()
+                except ValueError as exc:
+                    print(
+                        "Can't run LCIA for the selected node. Please select a product node (try `lprods`). Error: %s"
+                        % exc
+                    )
+                    return
                 formatted_res = []
                 for (method, _), score in mlca.scores.items():
                     method_name = method[0 + namespace_shift]
@@ -1594,7 +1643,7 @@ Autosave is turned %(autosave)s.""" % {
 
             else:
                 bw2browser_cs = {
-                    "inv": [{get_activity(self.activity): 1}],
+                    "inv": [{selected_activity: 1}],
                     "ia": method_key_list,
                 }
                 tmp_cs_id = uuid.uuid1()

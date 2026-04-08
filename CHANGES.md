@@ -4,6 +4,7 @@
 
 + implement backup and restore project commands
 + add `lprods` command to list product-like nodes only (`product` and `process_with_reference_product`), reducing LCIA failures from selecting process-only nodes
++ fix #77, refuse to do lcia on "process" type of nodes
 
 ## [0.47.2]
 
