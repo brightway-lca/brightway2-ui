@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
       - uses: conda-incubator/setup-miniconda@v4.1.0
         with:
-          python-version: 3.12
+          python-version: 3.14
           channels: conda-forge,cmutel,haasad
           conda-remove-defaults: "true"
       - name: Publish distribution 📦 to conda channels
