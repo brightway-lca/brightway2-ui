@@ -1,5 +1,9 @@
 # ui Changelog
 
+## [0.49.3] - 2026-10-07
+
++ fix #84 - production amounts parsing
+
 ## [0.49.2] - 2026-04-08
 
 + fix bug when getting empty "comment" field for a node

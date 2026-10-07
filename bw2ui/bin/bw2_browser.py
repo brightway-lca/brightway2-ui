@@ -275,11 +275,8 @@ class ActivityBrowser(cmd.Cmd):
                 print(
                     "[%(index)i]: %(option)s" % {"option": obj, "index": index + begin}
                 )
-            print(
-                "\nPage %(page)i of %(maxp)s. Use n (next page) and p \
-(previous page) to navigate."
-                % {"page": self.page, "maxp": self.max_page}
-            )
+            print("\nPage %(page)i of %(maxp)s. Use n (next page) and p \
+(previous page) to navigate." % {"page": self.page, "maxp": self.max_page})
         else:
             for index, obj in enumerate(self.current_options["formatted"]):
                 print("[%(index)i]: %(option)s" % {"option": obj, "index": index})
@@ -613,9 +610,7 @@ Autosave is turned %(autosave)s.""" % {
             )
         objs.sort(key=lambda x: x["name"])
         if show_formulas:
-            format_string = (
-                "%(amount).3g [=%(formula)s] %(unit)s %(name)s (%(location)s)"  # NOQA: E501
-            )
+            format_string = "%(amount).3g [=%(formula)s] %(unit)s %(name)s (%(location)s)"  # NOQA: E501
         elif show_pedigree:
             format_string = "%(amount).3g %(unit)s %(name)s (%(location)s)\n\t[pedigree: %(pedigree)s] "  # NOQA: E501
         elif show_uncertainty:
@@ -1020,12 +1015,20 @@ Autosave is turned %(autosave)s.""" % {
             print("No current activity")
         else:
             ds = get_activity(self.activity)
-            prod = [x for x in ds.exchanges() if x["input"] == self.activity]
+            prod = [
+                x
+                for x in ds.exchanges()
+                if x.get("type") == "production" or (x["input"] == self.activity)
+            ]
             if "production amount" in ds and ds["production amount"]:
-                amount = ds["production amount"]
+                raw_amount = ds["production amount"]
             elif len(prod) == 1:
-                amount = prod[0]["amount"]
+                raw_amount = prod[0]["amount"]
             else:
+                raw_amount = 1.0
+            try:
+                amount = float(raw_amount)
+            except (TypeError, ValueError):
                 amount = 1.0
             print(
                 """\n%(name)s
